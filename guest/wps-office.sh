@@ -1,0 +1,39 @@
+#!/bin/sh
+# Product-owned WPS shortcuts. Downloads are pinned in wps-downloads.tsv.
+set -eu
+export LANG=C.UTF-8 LC_ALL=C.UTF-8
+root=${BIONICX_ROOTFS:?missing BIONICX_ROOTFS}
+guest=$root/usr/lib/arlinux/guest
+app=${1:-writer}
+case "$app" in
+    writer) binary=wps ;; spreadsheet) binary=et ;;
+    presentation) binary=wpp ;; pdf) binary=wpspdf ;;
+    *) echo 'Usage: wps-office [writer|spreadsheet|presentation|pdf] [FILE ...]' >&2; exit 2 ;;
+esac
+[ "$#" -eq 0 ] || shift
+cache=$HOME/.cache/arlinux-wps
+mkdir -p "$cache"
+# Serialize installation, including different component shortcuts.
+exec 9>"$cache/install.lock"
+flock 9
+sudo "$root/bin/sh" "$guest/wps-install.sh"
+# Preserve the tested local-office preset: the optional cloud helper crashes
+# under this runtime. Leave document editors and local file handling enabled.
+cloud=$root/opt/kingsoft/wps-office/office6/wpscloudsvr
+if [ -x "$cloud" ]; then chmod a-x "$cloud"; fi
+mkdir -p "$HOME/Documents"
+flock -u 9
+exec 9>&-
+# Preserve the user's Office.conf; WPS presents its own first-run agreement.
+office=$root/opt/kingsoft/wps-office/office6
+export QT_QPA_PLATFORM=xcb QT_X11_NO_MITSHM=1
+export QT_PLUGIN_PATH=$office/qt/plugins
+export QT_QPA_PLATFORM_PLUGIN_PATH=$office/qt/plugins/platforms
+export XKB_CONFIG_ROOT=${BIONICX_FILES:-${root%/rootfs}}/xkb
+export QT_XKB_CONFIG_ROOT=$XKB_CONFIG_ROOT
+export FONTCONFIG_PATH=$root/etc/fonts FONTCONFIG_FILE=fonts.conf FONTCONFIG_SYSROOT=$root
+# WPS's RPATH prefers its bundled FreeType, which lacks symbols required by
+# Debian's Fontconfig. Keep both font libraries on the system ABI for every
+# editor; scope this override to WPS, preserving any caller preloads.
+export LD_PRELOAD="$root/usr/lib/aarch64-linux-gnu/libfreetype.so.6${LD_PRELOAD:+:$LD_PRELOAD}"
+exec "$office/$binary" "$@"

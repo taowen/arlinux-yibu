@@ -1,0 +1,8 @@
+DPkg::Use-Pty "false";
+APT::Color "false";
+quiet "1";
+APT::Sandbox::User "";
+Acquire::Languages "none";
+Acquire::ForceIPv4 "true";
+Acquire::http::Pipeline-Depth "0";
+Acquire::http::No-Cache "true";

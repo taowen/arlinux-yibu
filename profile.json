@@ -1,0 +1,27 @@
+{
+  "$schema": "../../schemas/profile.schema.json",
+  "schemaVersion": 3,
+  "id": "yibu",
+  "name": "yibu",
+  "display": {"dpi": 144, "socket": "filesystem"},
+  "launch": {
+    "executable": "${RUNTIME}/usr/bin/dbus-run-session",
+    "workingDirectory": "${HOME}",
+    "arguments": ["--", "${RUNTIME}/usr/lib/arlinux/accessibility-session.sh", "${RUNTIME}/bin/sh", "${RUNTIME}/usr/lib/arlinux/guest/desktop.sh"],
+    "environment": {
+      "DISPLAY": "${DISPLAY}",
+      "HOME": "${HOME}",
+      "XDG_RUNTIME_DIR": "${FILES}/runtime",
+      "WAYLAND_DISPLAY": "wayland-0",
+      "XDG_SESSION_TYPE": "wayland",
+      "GDK_BACKEND": "wayland,x11",
+      "QT_QPA_PLATFORM": "wayland;xcb",
+      "XDG_DATA_DIRS": "${RUNTIME}/usr/share",
+      "SHELL": "${RUNTIME}/bin/bash",
+      "TERM": "xterm-256color",
+      "PATH": "${RUNTIME}/usr/local/sbin:${RUNTIME}/usr/local/bin:${RUNTIME}/usr/sbin:${RUNTIME}/usr/bin:${RUNTIME}/sbin:${RUNTIME}/bin:/product/bin:/system/bin",
+      "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
+      "GTK_IM_MODULE": "ibus", "QT_IM_MODULE": "ibus", "XMODIFIERS": "@im=ibus"
+    }
+  }
+}
