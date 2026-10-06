@@ -16,9 +16,11 @@ switches directly to running applications. Apps opens installed Android and Linu
 applications; Tasks lists additional running tasks.
 
 The complete sidebar and toolbar are rendered and hit-tested by anhyprland, not
-an Android overlay. Apps opens a normal GTK Wayland window using standard desktop
-entries. The host exports installed Android launch activities and their icons as
-desktop entries; the existing `arlinux-app` endpoint opens their hosted windows.
+an Android overlay. Apps opens a normal GTK Wayland app drawer built from standard
+desktop entries, with separate Linux and Android sections, a filter and search.
+Helper entries such as terminal servers and settings panels are not listed. The
+host exports installed Android launch activities and their icons as desktop
+entries; the existing `arlinux-app` endpoint opens their hosted windows.
 The `x` on an auxiliary task removes it from that slot without closing the app.
 
 Full screen in the top-right corner hides the task chrome and expands the main
