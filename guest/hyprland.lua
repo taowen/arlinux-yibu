@@ -1,6 +1,7 @@
 -- The host starts the compositor. This file only configures the yibu desktop.
 hl.monitor({ output = '', mode = 'preferred', position = 'auto', scale = 1 })
 hl.config({
+    debug = { disable_logs = false },
     general = { layout = 'yibu', border_size = 0, gaps_in = 0, gaps_out = 0 },
     decoration = { rounding = 0, blur = { enabled = false }, shadow = { enabled = false } },
     animations = { enabled = false },
