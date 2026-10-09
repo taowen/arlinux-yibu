@@ -37,6 +37,11 @@ Its quick-launch icon strip and Android content-transfer behavior are not yet
 fully reproduced. This is not currently a complete One Step replica.
 
 Yibu is the built-in offline workspace in ARLinux 0.1.13 and later.
+OpenCode is optional and is not bundled. Click its Apps icon or hold the AI
+voice handle to download and install the pinned official desktop package.
+First installation needs internet and may take several minutes. You can release
+the handle while installation continues, then hold again once OpenCode opens.
+Subsequent launches use the installed app without downloading it again.
 The interaction is inspired by Smartisan OS One Step 3.0. This is an independent
 implementation, not a Smartisan product or a port of proprietary Smartisan code.
 
