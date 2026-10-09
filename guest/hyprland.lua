@@ -7,6 +7,7 @@ hl.config({
     animations = { enabled = false },
     cursor = { invisible = true },
     misc = {
+        focus_on_activate = true,
         disable_hyprland_logo = true,
         disable_splash_rendering = true,
         disable_hyprland_guiutils_check = true,

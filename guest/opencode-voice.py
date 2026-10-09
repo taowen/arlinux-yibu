@@ -78,7 +78,8 @@ def raise_opencode() -> None:
         capture_output=True, text=True,
     ).stdout.split()
     if windows:
-        subprocess.run(["xdotool", "windowactivate", windows[-1]], check=True)
+        subprocess.run(["xdotool", "windowactivate", "--sync", windows[-1]],
+                       check=True, timeout=3)
     # Native Wayland windows are focused through the prompt's AT-SPI Component.
 
 
@@ -164,8 +165,8 @@ def activate(node, action_name: str) -> bool:
 
 
 def focus_prompt() -> None:
-    ensure_opencode()
     raise_opencode()
+    ensure_opencode()
     deadline = time.monotonic() + 5
     while True:
         try:
