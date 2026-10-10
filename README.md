@@ -57,6 +57,38 @@ Place this checkout at `distributions/yibu` in that framework, then run:
 See the framework's distribution-authoring guide for device-based offline desktop
 preparation. Package installation is performed on a real ARM64 device, not QEMU.
 
+## Steam edition
+
+The optional `arlinux-yibu-steam.apk` release contains ARLinux and an account-free
+Yibu workspace with Valve's native ARM64 Steam client and its host dependencies.
+
+- New users: install the APK, open ARLinux and start the built-in workspace.
+- Existing users: in an ARLinux version supporting APK imports, choose **Import
+  ZIP / APK** and select the downloaded APK. This creates a separate **Yibu Steam**
+  instance; it does not install the APK or change existing workspaces. Older
+  ARLinux versions must first be updated to a version supporting APK imports.
+
+Open **Apps → Steam**. The launcher moves the bundled client into this instance's
+user directory; Valve's updater then works normally. Internet access is required
+for signing in, client updates, compatibility runtimes and games. No account,
+login credentials, games or compatibility-runtime downloads are included. Steam
+and games remain subject to their respective licenses; game compatibility varies.
+
+To prepare the embedded payload, start with a NEW disposable device-build
+instance of the offline Yibu desktop. Install Steam to `/opt/arlinux/steam-client`
+by executing `tools/install-steam-seed.py` inside the instance. Wait for Valve's
+updater to reach the login screen, and close it **without signing in**. Export the
+stopped instance with emulated hardlinks materialized, then run:
+
+```sh
+python3 tools/steam-desktop.py /path/to/arlinux-rootfs \
+  /path/to/yibu.zip /path/to/device-rootfs.tar out/yibu-steam.zip
+```
+
+This intermediate ZIP is embedded as `assets/default.zip` in the signed APK;
+the downloadable release artifact is the APK only. The sealing tool excludes
+home directories, account state, games, client caches, downloads and logs.
+
 The host must include the `yibu` anhyprland layout. A normal upstream Hyprland
 installation does not provide this layout. Cross-platform content dragging also
 requires a hosted Android drag-and-drop bridge; window switching alone is not
