@@ -66,7 +66,8 @@ Yibu workspace with Valve's native ARM64 Steam client and its host dependencies.
 - Existing users: in an ARLinux version supporting APK imports, choose **Import
   ZIP / APK** and select the downloaded APK. This creates a separate **Yibu Steam**
   instance; it does not install the APK or change existing workspaces. Older
-  ARLinux versions must first be updated to a version supporting APK imports.
+  ARLinux versions can first install this same APK as an application update
+  (retaining existing instances), then import it from inside ARLinux.
 
 Open **Apps → Steam**. The launcher moves the bundled client into this instance's
 user directory; Valve's updater then works normally. Internet access is required
