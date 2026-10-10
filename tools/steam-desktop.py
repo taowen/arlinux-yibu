@@ -42,6 +42,7 @@ with tempfile.TemporaryDirectory(prefix='yibu-steam-') as directory:
         installed = source.extractfile('./'+seed+'package/steam_client_linuxarm64.installed').read().decode()
         client_files = {line.rsplit(',', 1)[0].rstrip('/') for line in installed.splitlines() if line}
         client_files.add('package/steam_client_linuxarm64.installed')
+        client_files.add('package/steam_client_linuxarm64.manifest')
         if any(x.startswith('/') or '..' in x.split('/') for x in client_files):
             raise ValueError('Unsafe Valve installed-file manifest')
         for member in source:
@@ -52,7 +53,9 @@ with tempfile.TemporaryDirectory(prefix='yibu-steam-') as directory:
                     continue
                 if any(relative.rstrip('/') == x.rstrip('/') or relative.startswith(x) for x in excluded):
                     continue
-                if relative.startswith('package/') and not relative.endswith('.installed'):
+                if relative.startswith('package/') and relative not in (
+                    'package/steam_client_linuxarm64.installed',
+                    'package/steam_client_linuxarm64.manifest'):
                     continue
                 if relative.startswith(('ssfn', '.')) or relative in ('registry.vdf', 'steam.pid'):
                     continue
@@ -82,6 +85,7 @@ StartupNotify=false
             member.size, member.mode = len(data), 0o644
             target.addfile(member, io.BytesIO(data))
     required = {'steamrtarm64/steam', 'package/steam_client_linuxarm64.installed',
+                'package/steam_client_linuxarm64.manifest',
                 'steamrtarm64/steamwebhelper'}
     if not required <= seen:
         raise ValueError('Incomplete updated Steam client: ' + ', '.join(sorted(required-seen)))
