@@ -3,10 +3,12 @@
 
 Use a NEW build-only instance. Install the client to /opt/arlinux/steam-client,
 let Valve's updater reach its login screen, close it, and export the rootfs.
+Keep the original native bootstrap ZIP from the build instance's download cache.
 Never log in or install games in this instance. The Android repository handles
 APK signing; this tool only produces its embedded distribution payload.
 """
 import argparse
+import hashlib
 import importlib.util
 import io
 import json
@@ -22,6 +24,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('framework', type=Path)
 parser.add_argument('base', type=Path)
 parser.add_argument('snapshot', type=Path)
+parser.add_argument('bootstrap', type=Path)
 parser.add_argument('output', type=Path)
 args = parser.parse_args()
 framework = args.framework.resolve()
@@ -31,17 +34,35 @@ desktop = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(desktop)
 
 seed = 'opt/arlinux/steam-client/'
-# Only files from Valve's installed client belong in the seed. Runtime depots,
-# credentials, generated settings, downloads and logs must never be shipped.
+# Ship Valve's bootstrap and verified update archives, not its device-specific
+# installed-file cache. Valve initializes that cache for the user's own kernel.
 excluded = ('appcache/', 'config/', 'depotcache/', 'dumps/', 'logs/',
             'steamapps/', 'userdata/', 'compatibilitytools.d/', 'htmlcache/')
 seen = set()
 with tempfile.TemporaryDirectory(prefix='yibu-steam-') as directory:
     clean = Path(directory)/'rootfs.tar'
     with tarfile.open(args.snapshot) as source, tarfile.open(clean, 'w', format=tarfile.GNU_FORMAT) as target:
-        installed = source.extractfile('./'+seed+'package/steam_client_linuxarm64.installed').read().decode()
-        client_files = {line.rsplit(',', 1)[0].rstrip('/') for line in installed.splitlines() if line}
-        client_files.add('package/steam_client_linuxarm64.installed')
+        spec = importlib.util.spec_from_file_location('steam', framework/'runtime/tools/steam.py')
+        steam = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(steam)
+        listing = source.extractfile('./'+seed+'package/steam_client_linuxarm64.manifest').read().decode()
+        info = steam.manifest(listing)
+        component = info['bins_linuxarm64_linuxarm64']
+        if steam.digest(args.bootstrap) != component['sha2']:
+            raise ValueError('Bootstrap does not match Valve SHA-256')
+        with zipfile.ZipFile(args.bootstrap) as bootstrap:
+            client_files = {entry.filename.rstrip('/') for entry in bootstrap.infolist()}
+        archives = {}
+        for component in info.values():
+            if not isinstance(component, dict) or 'file' not in component:
+                continue
+            key = 'zipvz' if component.get('zipvz') else 'file'
+            name = component[key]
+            if '/' in name or name in ('.', '..'):
+                raise ValueError('Unsafe Valve package filename')
+            checksum = component['sha2vz' if key == 'zipvz' else 'sha2']
+            archives['package/'+name] = checksum
+        client_files.update(archives)
         client_files.add('package/steam_client_linuxarm64.manifest')
         if any(x.startswith('/') or '..' in x.split('/') for x in client_files):
             raise ValueError('Unsafe Valve installed-file manifest')
@@ -53,10 +74,13 @@ with tempfile.TemporaryDirectory(prefix='yibu-steam-') as directory:
                     continue
                 if any(relative.rstrip('/') == x.rstrip('/') or relative.startswith(x) for x in excluded):
                     continue
-                if relative.startswith('package/') and relative not in (
-                    'package/steam_client_linuxarm64.installed',
-                    'package/steam_client_linuxarm64.manifest'):
-                    continue
+                if relative in archives:
+                    checksum = hashlib.sha256()
+                    with source.extractfile(member) as data:
+                        for block in iter(lambda: data.read(1024*1024), b''):
+                            checksum.update(block)
+                    if checksum.hexdigest() != archives[relative]:
+                        raise ValueError('Valve package checksum mismatch: '+relative)
                 if relative.startswith(('ssfn', '.')) or relative in ('registry.vdf', 'steam.pid'):
                     continue
                 if member.issym():
@@ -84,9 +108,8 @@ StartupNotify=false
             member = tarfile.TarInfo('./'+name)
             member.size, member.mode = len(data), 0o644
             target.addfile(member, io.BytesIO(data))
-    required = {'steamrtarm64/steam', 'package/steam_client_linuxarm64.installed',
-                'package/steam_client_linuxarm64.manifest',
-                'steamrtarm64/steamwebhelper'}
+    required = {'steamrtarm64/steam', 'package/steam_client_linuxarm64.manifest',
+                'steamrtarm64/steamwebhelper', *archives}
     if not required <= seen:
         raise ValueError('Incomplete updated Steam client: ' + ', '.join(sorted(required-seen)))
     desktop.seal(args.base, clean, args.output)

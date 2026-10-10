@@ -70,7 +70,9 @@ Yibu workspace with Valve's native ARM64 Steam client and its host dependencies.
   (retaining existing instances), then import it from inside ARLinux.
 
 Open **Apps → Steam**. The launcher moves the bundled client into this instance's
-user directory; Valve's updater then works normally. Internet access is required
+user directory; Valve's updater initializes it using bundled, SHA-256-verified
+update archives. Its kernel-specific installed-file cache is never copied from
+the build device. Internet access is required
 for signing in, client updates, compatibility runtimes and games. No account,
 login credentials, games or compatibility-runtime downloads are included. Steam
 and games remain subject to their respective licenses; game compatibility varies.
@@ -83,12 +85,15 @@ stopped instance with emulated hardlinks materialized, then run:
 
 ```sh
 python3 tools/steam-desktop.py /path/to/arlinux-rootfs \
-  /path/to/yibu.zip /path/to/device-rootfs.tar out/yibu-steam.zip
+  /path/to/yibu.zip /path/to/device-rootfs.tar \
+  /path/to/native-bootstrap.zip out/yibu-steam.zip
 ```
 
 This intermediate ZIP is embedded as `assets/default.zip` in the signed APK;
 the downloadable release artifact is the APK only. The sealing tool excludes
-home directories, account state, games, client caches, downloads and logs.
+home directories, account state, games, device-specific client caches and logs.
+Only the official bootstrap and the client update archives are retained. Keep
+the native bootstrap ZIP from the build instance's `~/.cache/arlinux/steam/`.
 
 The host must include the `yibu` anhyprland layout. A normal upstream Hyprland
 installation does not provide this layout. Cross-platform content dragging also
