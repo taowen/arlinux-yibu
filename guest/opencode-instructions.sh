@@ -52,7 +52,3 @@ chmod 600 "$user_config"
 # that Chromium-private setting to GTK applications.
 cp "$guest/opencode-arlinux-environment.js" "$environment_plugin"
 chmod 600 "$environment_plugin"
-
-# Older images exposed a product-specific accessibility command here.  Keep
-# OpenCode on the standard dogtail/pyatspi APIs it already knows instead.
-rm -f "$root/usr/local/bin/arlinux-a11y"
