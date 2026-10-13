@@ -1,5 +1,9 @@
 yibu
 
+Spark Store is included in the offline desktop. Open Spark Store from Apps
+to browse and install ARM64 applications. Its installation and update actions
+use the guest package manager.
+
 Install software with Debian's standard package manager:
 
   sudo apt update
