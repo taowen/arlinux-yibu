@@ -45,4 +45,4 @@ Subsequent launches use the installed app without downloading it again.
 The interaction is inspired by Smartisan OS One Step 3.0. This is an independent
 implementation, not a Smartisan product or a port of proprietary Smartisan code.
 
-构建、缓存、验收及发布只遵循 [唯一构建与发布流程](https://github.com/taowen/arlinux-rootfs/blob/main/docs/BUILD.md)。Yibu 与其他发行版使用相同的 Linux/WSL 流水线。Steam 在用户点击时自动下载安装，不另维护 Steam 预装版 APK 或手机导出制作流程。
+Builds, caching, validation, and releases follow the [canonical build and release guide](https://github.com/taowen/arlinux-rootfs/blob/main/docs/BUILD.md). Yibu uses the same Linux/WSL pipeline as the other distributions. Steam is downloaded and installed automatically when the user selects it. There is no separate APK with Steam preinstalled or build process based on exported device instances.
