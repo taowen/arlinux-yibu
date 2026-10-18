@@ -31,18 +31,9 @@ touch /usr/share/arlinux/desktop-packages-installed
 # Restart after apt replaces libc or the loader under the running process.
 exit 75
 fi
-# Spark Store is part of the factory desktop, never installed at consumer boot.
-if ! dpkg-query -W -f '${Status}' spark-store 2>/dev/null | grep -q 'install ok installed'; then
-    apt-get install -y --no-install-recommends /usr/lib/arlinux/spark-store-packages/*.deb
-fi
-rm -f /usr/lib/arlinux/spark-store-packages/*.deb
-test -x /usr/bin/arlinux-spark-store
 apt-get autoremove -y
 rm -f /usr/lib/arlinux/mesa-packages/*.deb
-python3 -m pip install --break-system-packages --no-cache-dir \
-    --index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple 'edge-tts==7.2.8'
-python3 -c 'import edge_tts, pyatspi'
-test -x /usr/bin/arlinux-opencode
+python3 -m pip install --break-system-packages --no-cache-dir 'edge-tts==7.2.8'
 test -z "$(dpkg --audit)"
 update-alternatives --set x-terminal-emulator /usr/bin/foot
 dpkg-divert --local --no-rename --add /usr/bin/sudo
