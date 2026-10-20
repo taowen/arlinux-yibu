@@ -22,7 +22,7 @@ apt-get update
 apt-get install -y --no-install-recommends /usr/lib/arlinux/mesa-packages/*.deb libegl1 libgles2 libopengl0
 apt-get install -y --no-install-recommends \
     foot curl ca-certificates fonts-dejavu-core fonts-noto-cjk fontconfig \
-    x11-utils dbus-x11 at-spi2-core python3-dbus python3-pyatspi \
+    x11-utils x11-xserver-utils dbus-x11 at-spi2-core python3-dbus python3-pyatspi \
     ibus ibus-gtk3 ibus-gtk4 gir1.2-ibus-1.0 gir1.2-gtk-3.0 python3-dogtail python3-pip mpg123 \
     wl-clipboard wtype xclip xdotool libwayland-egl1 libwayland-client0 \
     libwayland-server0 libx11-xcb1 libasound2-plugins thunar mousepad
@@ -36,6 +36,9 @@ rm -f /usr/lib/arlinux/mesa-packages/*.deb
 python3 -m pip install --break-system-packages --no-cache-dir 'edge-tts==7.2.8'
 test -z "$(dpkg --audit)"
 update-alternatives --set x-terminal-emulator /usr/bin/foot
+install -Dm644 "$guest/90-arlinux-desktop.gschema.override" \
+    /usr/share/glib-2.0/schemas/90-arlinux-desktop.gschema.override
+glib-compile-schemas /usr/share/glib-2.0/schemas
 dpkg-divert --local --no-rename --add /usr/bin/sudo
 apt-get clean
 mkdir -p /usr/share/arlinux

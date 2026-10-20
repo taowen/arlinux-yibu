@@ -16,6 +16,7 @@
       "XDG_SESSION_TYPE": "wayland",
       "GDK_BACKEND": "wayland,x11",
       "QT_QPA_PLATFORM": "wayland;xcb",
+      "QT_FONT_DPI": "144",
       "XDG_DATA_DIRS": "${RUNTIME}/usr/share",
       "SHELL": "${RUNTIME}/bin/bash",
       "TERM": "xterm-256color",
