@@ -6,7 +6,6 @@ home=${HOME:?missing HOME}
 guest=$root/usr/lib/arlinux/guest
 config=$home/.config/opencode
 agents=$config/AGENTS.md
-user_config=$config/opencode.json
 plugin_dir=$config/plugin
 environment_plugin=$plugin_dir/arlinux-environment.js
 temporary=$config/.AGENTS.md.arlinux-new
@@ -33,19 +32,8 @@ printf '%s\n' "$end" >> "$temporary"
 mv "$temporary" "$agents"
 chmod 600 "$agents"
 
-# Seed the default user's normal OpenCode config once. Later edits belong to
-# the user and are deliberately left untouched on subsequent app starts.
-if [ ! -e "$user_config" ]; then
-    cat > "$user_config" <<'EOF'
-{
-  "$schema": "https://opencode.ai/config.json",
-  "permission": {
-    "external_directory": "allow"
-  }
-}
-EOF
-fi
-chmod 600 "$user_config"
+# The first-use installer seeds config and the available free model together.
+# Boot only maintains instructions/plugins and must not require network access.
 
 # OpenCode's Electron host sets NO_AT_BRIDGE for Chromium itself. Use the
 # supported shell.env hook so that commands run by the shell tool do not pass
