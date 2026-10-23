@@ -11,6 +11,10 @@ import sys
 import time
 
 
+class AccessibleNotReady(RuntimeError):
+    """An application or control has not appeared in the live AT-SPI tree yet."""
+
+
 def select_accessibility_bus() -> None:
     os.environ["NO_AT_BRIDGE"] = "0"
     result = subprocess.run(["xprop", "-root", "AT_SPI_BUS"],
@@ -48,28 +52,7 @@ def find_opencode():
                 return app
         except Exception:
             pass
-    raise RuntimeError("OpenCode window not found")
-
-
-def ensure_opencode() -> None:
-    """Start the normal desktop app when absent and await its accessible UI."""
-    try:
-        find_opencode()
-        running = True
-    except RuntimeError:
-        running = False
-    if not running and sys.argv[1] == "focus":
-        # The host owns the application independently of this voice request.
-        raise SystemExit(3)
-    deadline = time.monotonic() + 24
-    while time.monotonic() < deadline:
-        try:
-            app = find_opencode()
-            find_named(app, "document web", "OpenCode")
-            return
-        except RuntimeError:
-            time.sleep(0.2)
-    raise RuntimeError("OpenCode did not become ready within 24 seconds")
+    raise AccessibleNotReady("OpenCode window not found")
 
 
 def raise_opencode() -> None:
@@ -93,7 +76,7 @@ def find_named(root, role: str, name: str):
                 return node
         except Exception:
             pass
-    raise RuntimeError(f"OpenCode {name!r} {role} not found")
+    raise AccessibleNotReady(f"OpenCode {name!r} {role} not found")
 
 
 def visible_dialog(root):
@@ -113,7 +96,7 @@ def visible_dialog(root):
     return None
 
 
-def open_prompt():
+def open_prompt(*, allow_navigation=True):
     """Return the current composer, leaving Home or a modal if necessary."""
     app = find_opencode()
     dialog = visible_dialog(app)
@@ -127,8 +110,10 @@ def open_prompt():
         app = find_opencode()
     try:
         return find_named(app, "entry", "Prompt")
-    except RuntimeError:
+    except AccessibleNotReady:
         pass
+    if not allow_navigation:
+        raise AccessibleNotReady("OpenCode session is loading its prompt")
     # Home and Settings have no composer. Reuse an open new-session tab when
     # possible, preserving its draft instead of making a duplicate session.
     try:
@@ -137,13 +122,7 @@ def open_prompt():
         target = find_named(app, "button", "New session")
     if not any(activate(target, name) for name in ("jump", "press", "click", "open")):
         raise RuntimeError("could not open OpenCode session")
-    deadline = time.monotonic() + 5
-    while time.monotonic() < deadline:
-        try:
-            return find_named(find_opencode(), "entry", "Prompt")
-        except RuntimeError:
-            time.sleep(0.1)
-    raise RuntimeError("OpenCode session opened without a prompt")
+    return None
 
 
 def text_of(entry) -> str:
@@ -166,16 +145,30 @@ def activate(node, action_name: str) -> bool:
 
 def focus_prompt() -> None:
     raise_opencode()
-    ensure_opencode()
-    deadline = time.monotonic() + 5
-    while True:
+    try:
+        find_opencode()
+    except AccessibleNotReady:
+        if sys.argv[1:2] == ["focus"]:
+            # The host owns the application independently of this voice request.
+            raise SystemExit(3)
+    # A web document is published before its controls during cold startup.
+    # Use one startup budget ending at the actual composer, not a second short
+    # timeout starting at the empty document. Navigate at most once per request.
+    deadline = time.monotonic() + 24
+    navigation_started = False
+    last_pending = "OpenCode prompt is loading"
+    while time.monotonic() < deadline:
         try:
-            prompt = open_prompt()
+            prompt = open_prompt(allow_navigation=not navigation_started)
+            if prompt is None:
+                navigation_started = True
+                continue
             break
-        except RuntimeError:
-            if time.monotonic() >= deadline:
-                raise
+        except AccessibleNotReady as error:
+            last_pending = str(error)
             time.sleep(0.2)
+    else:
+        raise RuntimeError(f"OpenCode prompt did not become ready within 24 seconds: {last_pending}")
     try:
         focused = prompt.queryComponent().grabFocus()
     except Exception:
