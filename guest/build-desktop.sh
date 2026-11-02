@@ -9,6 +9,10 @@ guest=/usr/lib/arlinux/guest
 mkdir -p /etc/apt/sources.list.d /etc/dpkg/dpkg.cfg.d \
     /var/lib/apt/lists/partial /var/cache/apt/archives/partial /var/log/apt
 printf 'force-confnew\n' > /etc/dpkg/dpkg.cfg.d/arlinux
+# Emoji search and candidates belong to the hosted Android input method.
+# Keep IBus engines/bridges while omitting its independent emoji dictionaries,
+# including on subsequent apt upgrades inside this environment.
+printf 'path-exclude=/usr/share/ibus/dicts/*\n' > /etc/dpkg/dpkg.cfg.d/arlinux-ibus
 cp "$guest/debian.sources" /etc/apt/sources.list.d/debian.sources
 rm -f /etc/apt/sources.list
 cp "$guest/apt.conf.in" /etc/apt/apt.conf
