@@ -25,7 +25,7 @@ apt-get install -y --no-install-recommends \
     x11-utils x11-xserver-utils libglib2.0-bin dbus-x11 at-spi2-core python3-dbus python3-pyatspi \
     ibus ibus-gtk3 ibus-gtk4 gir1.2-ibus-1.0 gir1.2-gtk-3.0 python3-dogtail python3-pip mpg123 \
     wl-clipboard wtype xclip xdotool libwayland-egl1 libwayland-client0 \
-    libwayland-server0 libx11-xcb1 libasound2-plugins thunar mousepad waybar swaybg librsvg2-common
+    libwayland-server0 libx11-xcb1 libasound2-plugins thunar mousepad libgtkmm-3.0-1t64 libxkbregistry0 swaybg librsvg2-common
 mkdir -p /usr/share/arlinux
 touch /usr/share/arlinux/desktop-packages-installed
 # Restart after apt replaces libc or the loader under the running process.
